@@ -22,63 +22,73 @@ class CryptoDatingTest(unittest.TestCase):
 		self.p = 2137
 
 	def roundup(self, x):
-		return int(math.ceil(x / 1000.0)) * 1000
+		return int(math.ceil(x / 10000.0)) * 10000
 
 	def test_basic(self):
 
-		# total number of clients
-		N = 9
-		# number of preferences allowed
-		k = 2
+		for i in range(10):
 
-		# initialize server and clients
-		server = Server(N, k, self.g, self.p)
-		clients = []
-		for i in range(N):
-			clients.append(Client(i, N, k, self.g, self.p)) 
+			# total number of clients
+			N = 9
+			# number of preferences allowed
+			k = 2
 
-		# entries are generated and sent to server, who encrypts them
-		entries = []
-		for i in range(N):
-			entries.append(clients[i].generate_key_ex_part_one())
-		encrypted_entries = server.receive_key_ex_part_one(entries)
+			# initialize server and clients
+			server = Server(N, k, self.g, self.p)
+			clients = []
+			for i in range(N):
+				clients.append(Client(i, N, k, self.g, self.p)) 
 
-		# print(encrypted_entries)
+			# entries are generated and sent to server, who encrypts them
+			entries = []
+			for i in range(N):
+				entries.append(clients[i].generate_key_ex_part_one())
+			encrypted_entries = server.receive_key_ex_part_one(entries)
 
-		# server sends encrypted secrets to everyone
-		for i in range(N):
-			clients[i].receive_encrypted_entries(encrypted_entries)
+			# print(encrypted_entries)
 
-		# each client does OT with server for k keys
-		for i in range(N):
-			prefs = clients[i].get_preferences()
-			m = []
-			for p in prefs:
-				row_secs, col_secs, v = server.k_N_OT_one(self.g)
-				row, col = Helper.one_to_two_dimension(p, N)
-				row_val = self.one_N_OT(server, clients[i], row_secs, row)
-				col_val = self.one_N_OT(server, clients[i], col_secs, col)
-				key = self.roundup(int(v**(row_val * col_val)))
-				m.append(encrypted_entries[p] ^ key)
-			clients[i].update_with_entries(m)
+			# server sends encrypted secrets to everyone
+			for i in range(N):
+				clients[i].receive_encrypted_entries(encrypted_entries)
 
-		# each client broadcasts
-		bs = []
-		for i in range(N):
-			b = clients[i].broadcast()
-			bs.extend(b)
-	
+			# each client does OT with server for k keys
+			for i in range(N):
+				prefs = clients[i].get_preferences()
+				m = []
+				for p in prefs:
+					row_secs, col_secs, v = server.k_N_OT_one(self.g)
+					row, col = Helper.one_to_two_dimension(p, N)
+					row_val = self.one_N_OT(server, clients[i], row_secs, row)
+					col_val = self.one_N_OT(server, clients[i], col_secs, col)
+					key = self.roundup(int(v**(row_val * col_val)))
+					m.append(encrypted_entries[p] ^ key)
+				clients[i].update_with_entries(m)
 
-		# server broadcasts to all clients
-		for i in range(N):
-			clients[i].receive_broadcast(bs)
+			# each client broadcasts
+			bs = []
+			for i in range(N):
+				b = clients[i].broadcast()
+				bs.extend(b)
+		
 
-		# print out everything
-		for i in range(N):
-			prefs = clients[i].get_preferences()
-			matches = clients[i].get_matches()
-			keys = clients[i].get_completed_keys()
-			print(i, prefs, keys, matches)
+			# server broadcasts to all clients
+			for i in range(N):
+				clients[i].receive_broadcast(bs)
+
+
+			# print out everything
+			for i in range(N):
+				prefs = clients[i].get_preferences()
+				manual_matches = []
+				for p in prefs:
+					if i in clients[p].get_preferences():
+						manual_matches.append(p)
+				manual_matches = manual_matches
+				matches = clients[i].get_matches()
+				assert(sorted(manual_matches) == sorted(matches))
+				keys = clients[i].get_completed_keys()
+				print(i, prefs, keys, matches)
+
 
 	def test_one_two_OT(self):
 		# total number of clients
@@ -151,53 +161,52 @@ class CryptoDatingTest(unittest.TestCase):
 		m = encrypted_secrets[choice] ^ key
 		return m
 
-	def k_N_OT(self):
-		# total number of clients
-		N = 9
-		# number of preferences allowed
-		k = 3
+	def test_k_N_OT(self):
+		for i in range(10):
+			# total number of clients
+			N = 9
+			# number of preferences allowed
+			k = 3
 
-		server = Server(N, k, self.g, self.p)
-		client = Client(0, N, k, self.g, self.p)
-		g = 3
+			server = Server(N, k, self.g, self.p)
+			client = Client(0, N, k, self.g, self.p)
 
-		secrets = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-		self.preferences = []
-		for i in range(k):
-			rand_int = random.randint(0, N-1)
-			while rand_int == self.id or rand_int in self.preferences:
+			secrets = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+			self.preferences = []
+			for i in range(k):
 				rand_int = random.randint(0, N-1)
-			self.preferences.append(rand_int)
+				while rand_int == self.id or rand_int in self.preferences:
+					rand_int = random.randint(0, N-1)
+				self.preferences.append(rand_int)
 
-		encrypted_secrets = server.receive_key_ex_part_one(secrets)
-		m = []
-		for p in self.preferences:
-			row_secs, col_secs, v = server.k_N_OT_one(g)
-			row, col = Helper.one_to_two_dimension(p, N)
-			row_val = self.one_N_OT(server, client, row_secs, row)
-			col_val = self.one_N_OT(server, client, col_secs, col)
-			key = self.roundup(int(v**(row_val * col_val)))
-			m.append(encrypted_secrets[p] ^ key)
+			encrypted_secrets = server.receive_key_ex_part_one(secrets)
+			m = []
+			for p in self.preferences:
+				row_secs, col_secs, v = server.k_N_OT_one(self.g)
+				row, col = Helper.one_to_two_dimension(p, N)
+				row_val = self.one_N_OT(server, client, row_secs, row)
+				col_val = self.one_N_OT(server, client, col_secs, col)
+				key = self.roundup(int(v**(row_val * col_val)))
+				m.append(encrypted_secrets[p] ^ key)
 
-		print(self.preferences)
-		print(m)
-		assert(self.preferences == m)
+			assert(self.preferences == m)
 
 	def test_exponentiation(self):
-	 	r = random.randint(1,5)
-	 	c = random.randint(1, 5)
-	 	rr = random.randint(1, 5)
-		cc = random.randint(1, 5)
+		for i in range(10):
+		 	r = random.randint(1,5)
+		 	c = random.randint(1, 5)
+		 	rr = random.randint(1, 5)
+			cc = random.randint(1, 5)
 
-		g = 3
+			g = 3
 
-		x = self.roundup(g**(rr * cc))
-	
-		y = g**(1.0/(r * c)) 
+			x = self.roundup(g**(rr * cc))
 		
-		z = self.roundup(y**(rr*r*cc*c))
-		
-		self.assertTrue(x == z)
+			y = g**(1.0/(r * c)) 
+			
+			z = self.roundup(y**(rr*r*cc*c))
+			
+			self.assertTrue(x == z)
 
 
 	def test_fernet(self):

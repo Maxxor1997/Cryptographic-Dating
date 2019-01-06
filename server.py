@@ -27,7 +27,7 @@ class Server(object):
 		self.p = p
 
 	def roundup(self, x):
-		return int(math.ceil(x / 1000.0)) * 1000
+		return int(math.ceil(x / 10000.0)) * 10000
 
 
 	def receive_key_ex_part_one(self, entries):
@@ -58,8 +58,8 @@ class Server(object):
 	def one_two_OT_two(self, secrets, B, g):
 		k0 = (B**self.a) 
 		k1 = ((B/self.A)**self.a) 
-		e0 = Helper.encrypt(k0, secrets[0])
-		e1 = Helper.encrypt(k1, secrets[1])
+		e0 = Helper.encrypt_fernet(k0, secrets[0])
+		e1 = Helper.encrypt_fernet(k1, secrets[1])
 		return e0, e1
 
 	# 1-N OT transfer

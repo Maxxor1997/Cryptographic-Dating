@@ -43,9 +43,9 @@ class Client(object):
 
 	def one_two_OT_two(self, m0, m1, choice, g):
 		if choice == 0:
-			return Helper.decrypt(self.key, m0)
+			return Helper.decrypt_fernet(self.key, m0)
 		else:
-			return Helper.decrypt(self.key, m1)
+			return Helper.decrypt_fernet(self.key, m1)
 
 	# expose preferences to simulator
 	def get_preferences(self):
