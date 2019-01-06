@@ -73,7 +73,7 @@ class Client(object):
 		for b in bs:
 			for k in self.completed_keys:
 				dec = Helper.decrypt_fernet(k, b)
-				if dec >= 0 and dec < self.N and dec != self.id and dec not in self.matches:
+				if dec >= 0 and dec < self.N and dec != self.id and dec not in self.matches and dec in self.preferences:
 					self.matches.append(dec)
 		return self.matches
 
