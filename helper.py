@@ -1,7 +1,13 @@
 import math 
 import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import os
+import base64
+from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import cryptography
 
 class Helper:
 
@@ -30,26 +36,43 @@ class Helper:
 	    return c_y.update(c_x.update(e) + c_x.finalize()) + c_y.finalize()
 
 	@staticmethod
+	def encrypt_fernet(key, num):
+		salt = bytes(bytearray(16))
+		password_bytes = bytes([key])
+		kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
+   				length=32,
+    			salt=salt,
+     			iterations=100000,
+    			backend=default_backend()
+ 			)
+ 		key = base64.urlsafe_b64encode(kdf.derive(password_bytes))
+ 		f = Fernet(key)
+		token = f.encrypt(bytes([num]))
+		return token
+
+	@staticmethod
+	def decrypt_fernet(key, ct):
+		salt = bytes(bytearray(16))
+		password_bytes = bytes([key])
+		kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
+   				length=32,
+    			salt=salt,
+     			iterations=100000,
+    			backend=default_backend()
+ 			)
+ 		key = base64.urlsafe_b64encode(kdf.derive(password_bytes))
+ 		f = Fernet(key)
+ 		try:
+	 		dec_id = f.decrypt(ct)
+			dec_id = int(dec_id[1:-1])
+			return dec_id
+		except cryptography.fernet.InvalidToken:
+			return -1
+		
+	@staticmethod
 	def encrypt(key, num):
-		key = bytes([key])
-		key = key.ljust(32, '\0')
-		backend = default_backend()
-		iv = bytes([0])
-		iv = iv.ljust(16, '\0')
-		cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
-		encryptor = cipher.encryptor()
-		ct = encryptor.update(bytes([num])) + encryptor.finalize()
-		return ct
+		return key ^ num
 
 	@staticmethod
 	def decrypt(key, ct):
-		key = bytes([key])
-		key = key.ljust(32, '\0')
-		backend = default_backend()
-		iv = bytes([0])
-		iv = iv.ljust(16, '\0')
-		cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
-		decryptor = cipher.decryptor()
-		m = decryptor.update(ct) + decryptor.finalize()
-		return int(m)
-		
+		return key ^ ct

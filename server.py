@@ -58,8 +58,8 @@ class Server(object):
 	def one_two_OT_two(self, secrets, B, g):
 		k0 = (B**self.a) 
 		k1 = ((B/self.A)**self.a) 
-		e0 = k0 ^ secrets[0]
-		e1 = k1 ^ secrets[1]
+		e0 = Helper.encrypt(k0, secrets[0])
+		e1 = Helper.encrypt(k1, secrets[1])
 		return e0, e1
 
 	# 1-N OT transfer

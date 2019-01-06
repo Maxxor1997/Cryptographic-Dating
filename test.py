@@ -18,13 +18,13 @@ class CryptoDatingTest(unittest.TestCase):
 
 	def setUp(self):
 		# g and p for the DH key exchange
-		self.g = 23
-		self.p = 2053
+		self.g = 101
+		self.p = 541
 
 	def roundup(self, x):
 		return int(math.ceil(x / 100.0)) * 100
 
-	def test_basic(self):
+	def basic(self):
 
 		# total number of clients
 		N = 9
@@ -67,7 +67,7 @@ class CryptoDatingTest(unittest.TestCase):
 		for i in range(N):
 			b = clients[i].broadcast()
 			bs.extend(b)
-		print(bs)
+	
 
 		# server broadcasts to all clients
 		for i in range(N):
@@ -151,7 +151,7 @@ class CryptoDatingTest(unittest.TestCase):
 		m = encrypted_secrets[choice] ^ key
 		return m
 
-	def test_k_N_OT(self):
+	def k_N_OT(self):
 		# total number of clients
 		N = 9
 		# number of preferences allowed
@@ -179,6 +179,8 @@ class CryptoDatingTest(unittest.TestCase):
 			key = self.roundup(int(v**(row_val * col_val)))
 			m.append(encrypted_secrets[p] ^ key)
 
+		print(self.preferences)
+		print(m)
 		assert(self.preferences == m)
 
 	def test_exponentiation(self):
@@ -200,8 +202,8 @@ class CryptoDatingTest(unittest.TestCase):
 
 	def test_fernet(self):
 		password = random.randint(1, 10)
-		iden = 8
-		salt = salt = os.urandom(16)
+		iden = random.randint(1, 100)
+		salt = bytes(bytearray(16))
 		password_bytes = bytes([password])
 		kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
    				length=32,
@@ -213,10 +215,25 @@ class CryptoDatingTest(unittest.TestCase):
  		f = Fernet(key)
 		token = f.encrypt(bytes([iden]))
 		dec_id = f.decrypt(token)
-		id_int = struct.unpack("=i", dec_id)
-		print(id_int)
+		dec_id = int(dec_id[1:-1])
 		
-		self.assertTrue(dec_id == id)
+		self.assertTrue(dec_id == iden)
+
+	def test_fernet_helper(self):
+		password = random.randint(1, 10000)
+		iden = random.randint(1, 10000)
+		ct = Helper.encrypt_fernet(password, iden)
+		dt = Helper.decrypt_fernet(password, ct)
+		self.assertTrue(dt == iden)
+
+	def test_fernet_helper_failure(self):
+		password = random.randint(1, 10000)
+		pass2 = random.randint(1, 10000)
+		iden = random.randint(1, 10000)
+		ct = Helper.encrypt_fernet(password, iden)
+		dt = Helper.decrypt_fernet(pass2, ct)
+		self.assertTrue(dt == -1)
+
 
 
 
