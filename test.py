@@ -220,19 +220,21 @@ class CryptoDatingTest(unittest.TestCase):
 		self.assertTrue(dec_id == iden)
 
 	def test_fernet_helper(self):
-		password = random.randint(1, 10000)
-		iden = random.randint(1, 10000)
-		ct = Helper.encrypt_fernet(password, iden)
-		dt = Helper.decrypt_fernet(password, ct)
-		self.assertTrue(dt == iden)
+		for i in range(100):
+			password = random.randint(1, 10000)
+			iden = random.randint(1, 10000)
+			ct = Helper.encrypt_fernet(password, iden)
+			dt = Helper.decrypt_fernet(password, ct)
+			self.assertTrue(dt == iden)
 
 	def test_fernet_helper_failure(self):
-		password = random.randint(1, 10000)
-		pass2 = random.randint(1, 10000)
-		iden = random.randint(1, 10000)
-		ct = Helper.encrypt_fernet(password, iden)
-		dt = Helper.decrypt_fernet(pass2, ct)
-		self.assertTrue(dt == -1)
+		for i in range(100):
+			password = random.randint(1, 10000)
+			pass2 = random.randint(1, 10000)
+			iden = random.randint(1, 10000)
+			ct = Helper.encrypt_fernet(password, iden)
+			dt = Helper.decrypt_fernet(pass2, ct)
+			self.assertTrue(dt == -1)
 
 
 
