@@ -18,13 +18,13 @@ class CryptoDatingTest(unittest.TestCase):
 
 	def setUp(self):
 		# g and p for the DH key exchange
-		self.g = 101
-		self.p = 541
+		self.g = 7
+		self.p = 2137
 
 	def roundup(self, x):
-		return int(math.ceil(x / 100.0)) * 100
+		return int(math.ceil(x / 1000.0)) * 1000
 
-	def basic(self):
+	def test_basic(self):
 
 		# total number of clients
 		N = 9

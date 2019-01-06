@@ -27,7 +27,7 @@ class Server(object):
 		self.p = p
 
 	def roundup(self, x):
-		return int(math.ceil(x / 100.0)) * 100
+		return int(math.ceil(x / 1000.0)) * 1000
 
 
 	def receive_key_ex_part_one(self, entries):

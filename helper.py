@@ -42,7 +42,7 @@ class Helper:
 		kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
    				length=32,
     			salt=salt,
-     			iterations=100000,
+     			iterations=1000,
     			backend=default_backend()
  			)
  		key = base64.urlsafe_b64encode(kdf.derive(password_bytes))
@@ -57,7 +57,7 @@ class Helper:
 		kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
    				length=32,
     			salt=salt,
-     			iterations=100000,
+     			iterations=1000,
     			backend=default_backend()
  			)
  		key = base64.urlsafe_b64encode(kdf.derive(password_bytes))
