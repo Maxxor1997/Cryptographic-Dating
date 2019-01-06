@@ -43,7 +43,7 @@ class Client(object):
 		else:
 			return m1 ^ self.key
 
-	# 1-N OT transfer
-	def one_N_OT_one(self):
-		return 0
+	# expose preferences to simulator
+	def get_preferences(self):
+		return self.preferences
 

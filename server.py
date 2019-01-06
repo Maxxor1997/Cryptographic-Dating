@@ -13,16 +13,21 @@ class Server(object):
 		# generate row randomizers
 		self.row_rands = []
 		for i in range(self.root_N):
-			self.row_rands.append(random.randint(1, 101))
+			self.row_rands.append(random.randint(1, 5))
+
 
 		# generate col randomizers
 		self.col_rands = []
 		for i in range(self.root_N):
-			self.col_rands.append(random.randint(1, 101))
+			self.col_rands.append(random.randint(1, 5))
+
 
 		self.k = k
 		self.g = g
 		self.p = p
+
+	def roundup(self, x):
+		return int(math.ceil(x / 100.0)) * 100
 
 
 	def receive_key_ex_part_one(self, entries):
@@ -34,9 +39,13 @@ class Server(object):
 		self.encrypted_entries = []
 		for i, entry in enumerate(self.entries):
 			row, col = Helper.one_to_two_dimension(i, self.N)
-			key = self.row_rands[row] ^ self.col_rands[col]
+
+			key = self.roundup(self.g**(self.row_rands[row] * self.col_rands[col]))
+
 			encrypted_message = key ^ entry
 			self.encrypted_entries.append(encrypted_message)
+
+
 
 		return self.encrypted_entries
 
@@ -77,8 +86,16 @@ class Server(object):
 		return encrypted_secrets
 
 
-	def k_N_OT_one(self, secrets):
-		
+	def k_N_OT_one(self, g):
+		r = random.randint(1, 5)
+		c = random.randint(1, 5)
+		row_secrets = [x * r for x in self.row_rands]
+		print(row_secrets)
+		col_secrets = [x * c for x in self.col_rands]
+		print(col_secrets)
+		v = g**(1.0/(r * c))
+		print(v)
+		return (row_secrets, col_secrets, v)
 
 	# allow simulator to access secrets
 	def get_secrets(self, j):

@@ -12,8 +12,11 @@ class CryptoDatingTest(unittest.TestCase):
 
 	def setUp(self):
 		# g and p for the DH key exchange
-		self.g = 5
+		self.g = 3
 		self.p = 23
+
+	def roundup(self, x):
+		return int(math.ceil(x / 100.0)) * 100
 
 	def test_basic(self):
 
@@ -41,6 +44,8 @@ class CryptoDatingTest(unittest.TestCase):
 			clients[i].receive_encrypted_entries(encrypted_entries)
 
 		# each client does OT with server for k keys
+		for i in range()
+
 
 	def test_one_two_OT(self):
 		# total number of clients
@@ -58,7 +63,7 @@ class CryptoDatingTest(unittest.TestCase):
 		B = client.one_two_OT_one(A, choice, g)
 		e0, e1 = server.one_two_OT_two(secrets, B, g)
 		m = client.one_two_OT_two(e0, e1, choice, g)
-		print(choice, m)
+		self.assertTrue(choice == m)
 
 	# simulate 1-2 OT
 	def one_two_OT(self, server, client, secrets, choice):
@@ -94,7 +99,7 @@ class CryptoDatingTest(unittest.TestCase):
 			choice_2 = int(char)
 			key = key ^ self.one_two_OT(server, client, secrets_2, choice_2)
 		m = encrypted_secrets[choice] ^ key
-		print(choice, m)
+		self.assertTrue(choice == m)
 
 	# simulate 1-N OT
 	def one_N_OT(self, server, client, secrets, choice):
@@ -116,24 +121,46 @@ class CryptoDatingTest(unittest.TestCase):
 		# total number of clients
 		N = 9
 		# number of preferences allowed
-		k = 2
+		k = 3
 
 		server = Server(N, k, self.g, self.p)
 		client = Client(0, N, k, self.g, self.p)
-		g = 7
+		g = 3
 
 		secrets = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 		self.preferences = []
 		for i in range(k):
-			rand_int = random.randint(0, N)
+			rand_int = random.randint(0, N-1)
 			while rand_int == self.id or rand_int in self.preferences:
-				rand_int = random.randint(0, N)
+				rand_int = random.randint(0, N-1)
 			self.preferences.append(rand_int)
 
-		encrypted_secrets = server.k_N_OT_one(secrets)
+		encrypted_secrets = server.receive_key_ex_part_one(secrets)
+		m = []
+		for p in self.preferences:
+			row_secs, col_secs, v = server.k_N_OT_one(g)
+			row, col = Helper.one_to_two_dimension(p, N)
+			row_val = self.one_N_OT(server, client, row_secs, row)
+			col_val = self.one_N_OT(server, client, col_secs, col)
+			key = self.roundup(int(v**(row_val * col_val)))
+			m.append(encrypted_secrets[p] ^ key)
 
-		# simulate client behavior here
+		assert(self.preferences == m)
+		print(self.preferences, m)
+
+	def test_exponentiation(self):
+	 	r = random.randint(1,5)
+	 	c = random.randint(1, 5)
+	 	rr = random.randint(1, 5)
+	 	cc = random.randint(1, 5)
+		g = 3
+		x = self.roundup(g**(rr * cc))
+	
+		y = g**(1.0/(r * c)) 
 		
+		z = self.roundup(y**(rr*r*cc*c))
+		
+		self.assertTrue(x == z)
 
 
 
