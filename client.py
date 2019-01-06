@@ -9,20 +9,23 @@ class Client(object):
 		self.k = k
 		self.g = g
 		self.p = p
+		self.completed_keys = []
+		self.matches = []
 
 		# randomly chosen preference for k other persons
 		self.preferences = []
 		for i in range(k):
-			rand_int = random.randint(0, N)
+			rand_int = random.randint(0, N-1)
 			while rand_int == self.id or rand_int in self.preferences:
-				rand_int = random.randint(0, N)
+				rand_int = random.randint(0, N-1)
 			self.preferences.append(rand_int)
 
 		# randomly chose private key
-		self.private_key = random.randint(1, 101)
+		self.private_key = random.randint(1, 1000)
 
 	def generate_key_ex_part_one(self):
-		return (self.g**self.private_key) % self.p
+		self.key1 = (self.g**self.private_key) % self.p
+		return (self.key1)
 
 	def receive_encrypted_entries(self, encrypted_entries):
 		self.encrypted_entries = encrypted_entries
@@ -46,4 +49,33 @@ class Client(object):
 	# expose preferences to simulator
 	def get_preferences(self):
 		return self.preferences
+
+	def get_matches(self):
+		return self.matches
+
+	def get_completed_keys(self):
+		return self.completed_keys
+
+	def update_with_entries(self, entries):
+		for e in entries:
+			self.completed_keys.append((e**self.private_key) % self.p)
+
+	def broadcast(self):
+		bs = []
+		for k in self.completed_keys:
+			bs.append(k ^ ((self.id + 23) * 541))
+		return bs
+
+	def receive_broadcast(self, bs):
+		self.matches = []
+		# try to decrypt every entry
+		for b in bs:
+			for k in self.completed_keys:
+				dec = b ^ k
+				if dec % 541 == 0:
+					dec = dec / 541 - 23
+					if dec >= 0 and dec < self.N and dec != self.id and dec not in self.matches:
+						self.matches.append(dec)
+		return self.matches
+
 

@@ -90,11 +90,11 @@ class Server(object):
 		r = random.randint(1, 5)
 		c = random.randint(1, 5)
 		row_secrets = [x * r for x in self.row_rands]
-		print(row_secrets)
+
 		col_secrets = [x * c for x in self.col_rands]
-		print(col_secrets)
+
 		v = g**(1.0/(r * c))
-		print(v)
+
 		return (row_secrets, col_secrets, v)
 
 	# allow simulator to access secrets

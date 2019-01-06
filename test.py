@@ -6,14 +6,20 @@ from client import Client
 from server import Server
 from helper import Helper
 import math
-
+import os
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import struct
 
 class CryptoDatingTest(unittest.TestCase):
 
 	def setUp(self):
 		# g and p for the DH key exchange
-		self.g = 3
-		self.p = 23
+		self.g = 23
+		self.p = 2053
 
 	def roundup(self, x):
 		return int(math.ceil(x / 100.0)) * 100
@@ -44,8 +50,35 @@ class CryptoDatingTest(unittest.TestCase):
 			clients[i].receive_encrypted_entries(encrypted_entries)
 
 		# each client does OT with server for k keys
-		for i in range()
+		for i in range(N):
+			prefs = clients[i].get_preferences()
+			m = []
+			for p in prefs:
+				row_secs, col_secs, v = server.k_N_OT_one(self.g)
+				row, col = Helper.one_to_two_dimension(p, N)
+				row_val = self.one_N_OT(server, clients[i], row_secs, row)
+				col_val = self.one_N_OT(server, clients[i], col_secs, col)
+				key = self.roundup(int(v**(row_val * col_val)))
+				m.append(encrypted_entries[p] ^ key)
+			clients[i].update_with_entries(m)
 
+		# each client broadcasts
+		bs = []
+		for i in range(N):
+			b = clients[i].broadcast()
+			bs.extend(b)
+		print(bs)
+
+		# server broadcasts to all clients
+		for i in range(N):
+			clients[i].receive_broadcast(bs)
+
+		# print out everything
+		for i in range(N):
+			prefs = clients[i].get_preferences()
+			matches = clients[i].get_matches()
+			keys = clients[i].get_completed_keys()
+			print(i, prefs, keys, matches)
 
 	def test_one_two_OT(self):
 		# total number of clients
@@ -103,6 +136,7 @@ class CryptoDatingTest(unittest.TestCase):
 
 	# simulate 1-N OT
 	def one_N_OT(self, server, client, secrets, choice):
+		self.assertTrue(choice < len(secrets))
 		g = 7
 		encrypted_secrets = server.one_N_OT_one(secrets)
 		# simulate client behavior here
@@ -146,14 +180,15 @@ class CryptoDatingTest(unittest.TestCase):
 			m.append(encrypted_secrets[p] ^ key)
 
 		assert(self.preferences == m)
-		print(self.preferences, m)
 
 	def test_exponentiation(self):
 	 	r = random.randint(1,5)
 	 	c = random.randint(1, 5)
 	 	rr = random.randint(1, 5)
-	 	cc = random.randint(1, 5)
+		cc = random.randint(1, 5)
+
 		g = 3
+
 		x = self.roundup(g**(rr * cc))
 	
 		y = g**(1.0/(r * c)) 
@@ -161,6 +196,28 @@ class CryptoDatingTest(unittest.TestCase):
 		z = self.roundup(y**(rr*r*cc*c))
 		
 		self.assertTrue(x == z)
+
+
+	def test_fernet(self):
+		password = random.randint(1, 10)
+		iden = 8
+		salt = salt = os.urandom(16)
+		password_bytes = bytes([password])
+		kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
+   				length=32,
+    			salt=salt,
+     			iterations=100000,
+    			backend=default_backend()
+ 			)
+ 		key = base64.urlsafe_b64encode(kdf.derive(password_bytes))
+ 		f = Fernet(key)
+		token = f.encrypt(bytes([iden]))
+		dec_id = f.decrypt(token)
+		id_int = struct.unpack("=i", dec_id)
+		print(id_int)
+		
+		self.assertTrue(dec_id == id)
+
 
 
 
