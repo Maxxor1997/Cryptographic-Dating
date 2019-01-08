@@ -3,6 +3,7 @@ import math
 from helper import Helper
 from hashlib import sha256
 import hmac
+from decimal import *
 
 class Server(object):
 
@@ -27,7 +28,7 @@ class Server(object):
 		self.p = p
 
 	def roundup(self, x):
-		return int(math.ceil(x / 10000.0)) * 10000
+		return int(math.ceil(x / 100000.0)) * 100000
 
 
 	def receive_key_ex_part_one(self, entries):
@@ -93,7 +94,7 @@ class Server(object):
 
 		col_secrets = [x * c for x in self.col_rands]
 
-		v = g**(1.0/(r * c))
+		v = (g**(1.0/(r * c)))
 
 		return (row_secrets, col_secrets, v)
 

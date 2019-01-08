@@ -13,20 +13,23 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import struct
+from decimal import *
 
 class CryptoDatingTest(unittest.TestCase):
 
 	def setUp(self):
 		# g and p for the DH key exchange
 		self.g = 7
-		self.p = 2137
+		self.p = 5279
 
 	def roundup(self, x):
-		return int(math.ceil(x / 10000.0)) * 10000
+		return int(math.ceil(x / 100000.0)) * 100000
 
 	def test_basic(self):
 
-		for i in range(10):
+		success = 0
+
+		for i in range(100):
 
 			# total number of clients
 			N = 9
@@ -77,6 +80,7 @@ class CryptoDatingTest(unittest.TestCase):
 
 
 			# print out everything
+			succ = 0
 			for i in range(N):
 				prefs = clients[i].get_preferences()
 				manual_matches = []
@@ -85,9 +89,14 @@ class CryptoDatingTest(unittest.TestCase):
 						manual_matches.append(p)
 				manual_matches = manual_matches
 				matches = clients[i].get_matches()
-				assert(sorted(manual_matches) == sorted(matches))
+				if(sorted(manual_matches) == sorted(matches)):
+					succ += 1
 				keys = clients[i].get_completed_keys()
-				print(i, prefs, keys, matches)
+				# print(i, prefs, keys, matches)
+			if succ == N:
+				success += 1
+
+		print("basic successes: " + str(success))
 
 
 	def test_one_two_OT(self):
@@ -162,7 +171,9 @@ class CryptoDatingTest(unittest.TestCase):
 		return m
 
 	def test_k_N_OT(self):
-		for i in range(10):
+		success = 0
+
+		for i in range(100):
 			# total number of clients
 			N = 9
 			# number of preferences allowed
@@ -189,7 +200,11 @@ class CryptoDatingTest(unittest.TestCase):
 				key = self.roundup(int(v**(row_val * col_val)))
 				m.append(encrypted_secrets[p] ^ key)
 
-			assert(self.preferences == m)
+			if(self.preferences == m):
+				success += 1
+
+		print("kn successes: " + str(success))
+
 
 	def test_exponentiation(self):
 		for i in range(10):

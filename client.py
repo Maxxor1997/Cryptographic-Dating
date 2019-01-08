@@ -1,5 +1,6 @@
 import random		
 from helper import Helper
+from decimal import *
 
 class Client(object):
 
@@ -21,7 +22,7 @@ class Client(object):
 			self.preferences.append(rand_int)
 
 		# randomly chose private key
-		self.private_key = random.randint(1, 500)
+		self.private_key = random.randint(1, 500) * (self.id + 1)
 
 	def generate_key_ex_part_one(self):
 		self.key1 = (self.g**self.private_key) % self.p
